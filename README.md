@@ -15,9 +15,9 @@ $ virtualenv ~/.python-venv/dsc-qx-playmemories
 
 ## Usage
 
-Connect your computer wifi `ad-hoc` with `Sony DSC-QX Lens-Style` Camera first,
+Connect to your computer wifi locally `ad-hoc` with `Sony DSC-QX Lens-Style` Camera first,
 
-Run application in Python Virtual Environment,
+And then, run the application in Python Virtual Environment,
 
 ```bash
 $ cd ~/.python-venv/dsc-qx-playmemories/bin
