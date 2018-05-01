@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# @@file:qx-lenstyle-remote.py
+# @@file:dsc-playmemories.py
 # @@description: live stream Sony DSC-QX Lens-Style to desktop
 # @@version: 1.0
 # @@author: Loouis Low <loouis@gmail.com>
@@ -15,17 +15,30 @@ import functools
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+
+# prerequisites
+try:
+    import PyQt4
+except:
+    os.system("pip install -r requirements.txt")
+    os.system("sudo bash prerequisites.sh")
+
+
 lock = threading.Lock()
 
 app = QApplication(sys.argv)
 image = QImage()
 overviewgrid = "off"
 
+
 class ImageDisplay(QLabel):
+
     def __init__(self):
+    
         QLabel.__init__(self)
 
     def paintEvent(self, event):
+    
         global lock
         global overviewgrid
 
@@ -73,13 +86,16 @@ class ImageDisplay(QLabel):
             
         QLabel.paintEvent(self, event)
 
+
 # params based on DSC-QX API
 pId = 0
 headers = {"Content-type": "text/plain", "Accept": "*/*", "X-Requested-With": "com.sony.playmemories.mobile"}
 AUTH_CONST_STRING = "90adc8515a40558968fe8318b5b023fdd48d3828a2dda8905f3b93a3cd8e58dc"
 METHODS_TO_ENABLE = "camera/setFlashMode:camera/getFlashMode:camera/getSupportedFlashMode:camera/getAvailableFlashMode:camera/setExposureCompensation:camera/getExposureCompensation:camera/getSupportedExposureCompensation:camera/getAvailableExposureCompensation:camera/setSteadyMode:camera/getSteadyMode:camera/getSupportedSteadyMode:camera/getAvailableSteadyMode:camera/setViewAngle:camera/getViewAngle:camera/getSupportedViewAngle:camera/getAvailableViewAngle:camera/setMovieQuality:camera/getMovieQuality:camera/getSupportedMovieQuality:camera/getAvailableMovieQuality:camera/setFocusMode:camera/getFocusMode:camera/getSupportedFocusMode:camera/getAvailableFocusMode:camera/setStillSize:camera/getStillSize:camera/getSupportedStillSize:camera/getAvailableStillSize:camera/setBeepMode:camera/getBeepMode:camera/getSupportedBeepMode:camera/getAvailableBeepMode:camera/setCameraFunction:camera/getCameraFunction:camera/getSupportedCameraFunction:camera/getAvailableCameraFunction:camera/setLiveviewSize:camera/getLiveviewSize:camera/getSupportedLiveviewSize:camera/getAvailableLiveviewSize:camera/setTouchAFPosition:camera/getTouchAFPosition:camera/cancelTouchAFPosition:camera/setFNumber:camera/getFNumber:camera/getSupportedFNumber:camera/getAvailableFNumber:camera/setShutterSpeed:camera/getShutterSpeed:camera/getSupportedShutterSpeed:camera/getAvailableShutterSpeed:camera/setIsoSpeedRate:camera/getIsoSpeedRate:camera/getSupportedIsoSpeedRate:camera/getAvailableIsoSpeedRate:camera/setExposureMode:camera/getExposureMode:camera/getSupportedExposureMode:camera/getAvailableExposureMode:camera/setWhiteBalance:camera/getWhiteBalance:camera/getSupportedWhiteBalance:camera/getAvailableWhiteBalance:camera/setProgramShift:camera/getSupportedProgramShift:camera/getStorageInformation:camera/startLiveviewWithSize:camera/startIntervalStillRec:camera/stopIntervalStillRec:camera/actFormatStorage:system/setCurrentTime"
 
+
 def postRequest(conn, target, req):
+
     global pId
     pId += 1
     req["id"] = pId
@@ -94,16 +110,22 @@ def postRequest(conn, target, req):
 
     return data
 
+
 def exitWithError(conn, message):
+
     conn.close()
     sys.exit(1)
 
+
 def parseUrl(url):
+
     parsedUrl = urllib.parse.urlparse(url)
     return parsedUrl.hostname, parsedUrl.port, parsedUrl.path + "?" + parsedUrl.query, parsedUrl.path[1:]
 
+
 # download image from the device
 def downloadImage(url):
+
     host, port, address, img_name = parseUrl(url)
     conn2 = http.client.HTTPConnection(host, port)
     conn2.request("GET", address)
@@ -112,11 +134,14 @@ def downloadImage(url):
     if response.status == 200:
         with open(img_name, "wb") as img:
             img.write(response.read())
+            print("[debug] Saving picture to computer")
     else:
         print("ERROR: Could not download picture, error = [%d %s]" % (response.status, response.reason))
 
+
 # get liveview from the device
 def liveviewFromUrl(url):
+
     global image
     global lock
 
@@ -145,7 +170,9 @@ def liveviewFromUrl(url):
             else:
                 buf += nextPart
 
+
 def communicationThread():
+
     conn = http.client.HTTPConnection("10.0.0.1", 10000)
     resp = postRequest(conn, "camera", {"method": "getVersions", "params": []})
     resp = postRequest(conn, "camera", {"method": "getVersions", "params": []})
@@ -165,9 +192,12 @@ def communicationThread():
     liveview = threading.Thread(target = liveviewFromUrl, args = (resp["result"][0],))
     liveview.start()
 
+
 # draw form UI
 class Form(QDialog):
+
     def __init__(self, parent=None):
+
         super(Form, self).__init__(parent)
 
         # camera functions
@@ -194,6 +224,7 @@ class Form(QDialog):
         self.connect(takePicBtn, SIGNAL("clicked()"), self.takePic)
 
     def getSupportedExposureModes(self, grid):
+
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "getAvailableExposureMode", "params": [], "version": "1.0"})
         self.label.setText("Current Mode:" + resp["result"][0])
@@ -211,6 +242,7 @@ class Form(QDialog):
         grid.addLayout(layout,0,0)
 
     def setExposureMode(self, m, grid):
+
         self.label.setText("Setting Mode")
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "setExposureMode", "params": [m], "version": "1.0"})
@@ -226,8 +258,10 @@ class Form(QDialog):
             self.getAvailableShutterSpeed(grid)
 
     def getAvailableFNumber(self, grid):
+
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "getAvailableFNumber", "params": [], "version": "1.0"})
+
         try:
             available_modes = resp["result"][1]
             self.FComboBox.addItems(available_modes)
@@ -236,6 +270,7 @@ class Form(QDialog):
             pass
 
     def getAvailableIsoSpeedRate(self, grid):
+
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "getAvailableIsoSpeedRate", "params": [], "version": "1.0"})
         try:
@@ -246,6 +281,7 @@ class Form(QDialog):
             pass
 
     def getAvailableShutterSpeed(self, grid):
+
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "getAvailableShutterSpeed", "params": [], "version": "1.0"})
         try:
@@ -256,17 +292,20 @@ class Form(QDialog):
             pass
 
     def takePic(self):
+
         self.label.setText("Capturing Image")
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "actTakePicture", "params": [], "version": "1.0"})
         downloadImage(resp["result"][0][0])
 
     def zoomIn(self):
+
         self.label.setText("Zoom In")
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "actZoom", "params": ["in", "start"], "version": "1.0"})
 
     def zoomInStop(self):
+
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "actZoom", "params": ["in", "stop"], "version": "1.0"})
         feedback = postRequest(conn, "camera", {"method": "getEvent", "params": [False], "id": 4, "version": "1.0"})
@@ -274,11 +313,13 @@ class Form(QDialog):
         self.label.setText("Zoom Position: "+ str(feedback["result"][2]["zoomPosition"]))
 
     def zoomOut(self):
+
         self.label.setText("Zoom In")
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "actZoom", "params": ["out", "start"], "version": "1.0"})
 
     def zoomOutStop(self):
+
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "actZoom", "params": ["out", "stop"], "version": "1.0"})
         feedback = postRequest(conn, "camera", {"method": "getEvent", "params": [False], "id": 4, "version": "1.0"})
@@ -286,27 +327,33 @@ class Form(QDialog):
         self.label.setText("Zoom Position: "+ str(feedback["result"][2]["zoomPosition"]))
 
     def handleFChange(self, text):
+
         print('handleChanged: %s' % text)
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "setFNumber", "params": [text], "version": "1.0"})
 
     def handleISOChange(self, text):
+
         print('handleChanged: %s' % text)
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "setIsoSpeedRate", "params": [text], "version": "1.0"})
 
     def handleShutterChange(self, text):
+
         print('handleChanged: %s' % text)
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "setShutterSpeed", "params": [text], "version": "1.0"})
 
     def clearCombo(self,combo):
+
         for i in range(combo.count(),-1,-1):
                 print(i)
                 combo.removeItem(i)
 
+
 form = Form()
 form.show()
+
 
 if __name__ == "__main__":
     communication = threading.Thread(target = communicationThread)
