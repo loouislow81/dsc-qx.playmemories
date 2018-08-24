@@ -6,15 +6,18 @@
 # @@author: Loouis Low <loouis@gmail.com>
 #
 
-import sys, json, time
-import http.client, urllib.parse
+import sys
+import json
+import time
+import http.client
+import urllib.parse
 import threading
-import base64, hashlib
+import base64
+import hashlib
 import functools
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-
 
 # prerequisites
 try:
@@ -22,7 +25,6 @@ try:
 except:
     os.system("pip install -r requirements.txt")
     os.system("sudo bash prerequisites.sh")
-
 
 lock = threading.Lock()
 
@@ -34,56 +36,56 @@ overviewgrid = "off"
 class ImageDisplay(QLabel):
 
     def __init__(self):
-    
+
         QLabel.__init__(self)
 
     def paintEvent(self, event):
-    
+
         global lock
         global overviewgrid
 
         lock.acquire()
-        
+
         try:
-          # draws bullseye cross on image
-          if overviewgrid == "bullseye":
-              qp = QPainter()
-              image_height = image.height()
-              image_width = image.width()
-              bull_size = 150
+            # draws bullseye cross on image
+            if overviewgrid == "bullseye":
+                qp = QPainter()
+                image_height = image.height()
+                image_width = image.width()
+                bull_size = 150
 
-              qp.begin(image)
-              pen = QPen(Qt.red, 1, Qt.SolidLine)
-              qp.setPen(pen)
-              qp.drawLine(image_width/2, bull_size, image_width/2, image_height-bull_size)
-              qp.drawLine((bull_size*1.5), image_height/2, image_width-(bull_size*1.5), image_height/2)
-              qp.end()
-              self.setPixmap(QPixmap.fromImage(image))
-          # draws gridlines on image
-          elif overviewgrid == "gridlines":
-              qp = QPainter()
-              image_height = image.height()
-              image_width = image.width()
+                qp.begin(image)
+                pen = QPen(Qt.red, 1, Qt.SolidLine)
+                qp.setPen(pen)
+                qp.drawLine(image_width / 2, bull_size, image_width / 2, image_height - bull_size)
+                qp.drawLine((bull_size * 1.5), image_height / 2, image_width - (bull_size * 1.5), image_height / 2)
+                qp.end()
+                self.setPixmap(QPixmap.fromImage(image))
+            # draws gridlines on image
+            elif overviewgrid == "gridlines":
+                qp = QPainter()
+                image_height = image.height()
+                image_width = image.width()
 
-              qp.begin(image)
-              pen = QPen(Qt.white, 1, Qt.SolidLine)
-              qp.setPen(pen)
-              grid_h = image_width/20;
-              grid_v = image_height/15;
-              for n in range(0, 20):
-                  qp.drawLine(grid_h*n, 0, grid_h*n, image_height)
-              for n in range(0, 15):
-                  qp.drawLine(0, grid_v*n, image_width, grid_v*n)
+                qp.begin(image)
+                pen = QPen(Qt.white, 1, Qt.SolidLine)
+                qp.setPen(pen)
+                grid_h = image_width / 20;
+                grid_v = image_height / 15;
+                for n in range(0, 20):
+                    qp.drawLine(grid_h * n, 0, grid_h * n, image_height)
+                for n in range(0, 15):
+                    qp.drawLine(0, grid_v * n, image_width, grid_v * n)
 
-              qp.end()
+                qp.end()
 
-              self.setPixmap(QPixmap.fromImage(image))
-          else:
-              self.setPixmap(QPixmap.fromImage(image))
+                self.setPixmap(QPixmap.fromImage(image))
+            else:
+                self.setPixmap(QPixmap.fromImage(image))
 
         finally:
             lock.release()
-            
+
         QLabel.paintEvent(self, event)
 
 
@@ -95,7 +97,6 @@ METHODS_TO_ENABLE = "camera/setFlashMode:camera/getFlashMode:camera/getSupported
 
 
 def postRequest(conn, target, req):
-
     global pId
     pId += 1
     req["id"] = pId
@@ -104,7 +105,7 @@ def postRequest(conn, target, req):
     response = conn.getresponse()
     data = json.loads(response.read().decode("UTF-8"))
 
-    #print(data)
+    # print(data)
     if data["id"] != pId:
         return {}
 
@@ -112,20 +113,17 @@ def postRequest(conn, target, req):
 
 
 def exitWithError(conn, message):
-
     conn.close()
     sys.exit(1)
 
 
 def parseUrl(url):
-
     parsedUrl = urllib.parse.urlparse(url)
     return parsedUrl.hostname, parsedUrl.port, parsedUrl.path + "?" + parsedUrl.query, parsedUrl.path[1:]
 
 
 # download image from the device
 def downloadImage(url):
-
     host, port, address, img_name = parseUrl(url)
     conn2 = http.client.HTTPConnection(host, port)
     conn2.request("GET", address)
@@ -141,7 +139,6 @@ def downloadImage(url):
 
 # get liveview from the device
 def liveviewFromUrl(url):
-
     global image
     global lock
 
@@ -172,7 +169,6 @@ def liveviewFromUrl(url):
 
 
 def communicationThread():
-
     conn = http.client.HTTPConnection("10.0.0.1", 10000)
     resp = postRequest(conn, "camera", {"method": "getVersions", "params": []})
     resp = postRequest(conn, "camera", {"method": "getVersions", "params": []})
@@ -180,7 +176,8 @@ def communicationThread():
     if resp["result"][0][0] != "1.0":
         exitWithError(conn, "Unsupported version")
 
-    resp = postRequest(conn, "accessControl", {"method": "actEnableMethods", "params": [{"methods": "", "developerName": "", "developerID": "", "sg": ""}], "version": "1.0"})
+    resp = postRequest(conn, "accessControl", {"method": "actEnableMethods", "params": [
+        {"methods": "", "developerName": "", "developerID": "", "sg": ""}], "version": "1.0"})
     dg = resp["result"][0]["dg"]
 
     h = hashlib.sha256()
@@ -189,7 +186,7 @@ def communicationThread():
 
     resp = postRequest(conn, "camera", {"method": "startLiveview", "params": [], "version": "1.0"})
 
-    liveview = threading.Thread(target = liveviewFromUrl, args = (resp["result"][0],))
+    liveview = threading.Thread(target=liveviewFromUrl, args=(resp["result"][0],))
     liveview.start()
 
 
@@ -210,14 +207,14 @@ class Form(QDialog):
         imgDisplay.show()
 
         grid = QGridLayout()
-        grid.addWidget(imgDisplay,1,0)
+        grid.addWidget(imgDisplay, 1, 0)
 
         controlLayout = QGridLayout()
         controlLayout.setSpacing(10)
-        controlLayout.addWidget(takePicBtn,0,0)
+        controlLayout.addWidget(takePicBtn, 0, 0)
 
         self.getSupportedExposureModes(grid)
-        grid.addLayout(controlLayout,2,0)
+        grid.addLayout(controlLayout, 2, 0)
 
         self.setLayout(grid)
 
@@ -239,7 +236,7 @@ class Form(QDialog):
             self.connect(b, SIGNAL("clicked()"), functools.partial(self.setExposureMode, m, grid))
             layout.addWidget(b)
         layout.addStretch()
-        grid.addLayout(layout,0,0)
+        grid.addLayout(layout, 0, 0)
 
     def setExposureMode(self, m, grid):
 
@@ -310,7 +307,7 @@ class Form(QDialog):
         resp = postRequest(conn, "camera", {"method": "actZoom", "params": ["in", "stop"], "version": "1.0"})
         feedback = postRequest(conn, "camera", {"method": "getEvent", "params": [False], "id": 4, "version": "1.0"})
         print(feedback["result"][2]["zoomPosition"])
-        self.label.setText("Zoom Position: "+ str(feedback["result"][2]["zoomPosition"]))
+        self.label.setText("Zoom Position: " + str(feedback["result"][2]["zoomPosition"]))
 
     def zoomOut(self):
 
@@ -324,7 +321,7 @@ class Form(QDialog):
         resp = postRequest(conn, "camera", {"method": "actZoom", "params": ["out", "stop"], "version": "1.0"})
         feedback = postRequest(conn, "camera", {"method": "getEvent", "params": [False], "id": 4, "version": "1.0"})
         print(feedback["result"][2]["zoomPosition"])
-        self.label.setText("Zoom Position: "+ str(feedback["result"][2]["zoomPosition"]))
+        self.label.setText("Zoom Position: " + str(feedback["result"][2]["zoomPosition"]))
 
     def handleFChange(self, text):
 
@@ -344,18 +341,17 @@ class Form(QDialog):
         conn = http.client.HTTPConnection("10.0.0.1", 10000)
         resp = postRequest(conn, "camera", {"method": "setShutterSpeed", "params": [text], "version": "1.0"})
 
-    def clearCombo(self,combo):
+    def clearCombo(self, combo):
 
-        for i in range(combo.count(),-1,-1):
-                print(i)
-                combo.removeItem(i)
+        for i in range(combo.count(), -1, -1):
+            print(i)
+            combo.removeItem(i)
 
 
 form = Form()
 form.show()
 
-
 if __name__ == "__main__":
-    communication = threading.Thread(target = communicationThread)
+    communication = threading.Thread(target=communicationThread)
     communication.start()
     sys.exit(app.exec_())
