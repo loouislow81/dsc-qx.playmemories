@@ -1,4 +1,4 @@
-# dsc-qx.playmemories
+# playmemories for desktop
 
 This is a quick and dirty python application that allows my 2 Sony Lens-Style DSC-QX 10 & 100 cameras to use on my laptop.
 
@@ -10,7 +10,7 @@ Install and create new virtualenv,
 
 ```bash
 $ sudo apt install -y virtualenv
-$ virtualenv ~/.python-venv/dsc-qx-playmemories
+$ virtualenv ~/.python-venv/playmemories
 ```
 
 ## Usage
