@@ -4,28 +4,25 @@ This is a quick and dirty python application that allows my 2 Sony Lens-Style DS
 
 I learned from this this website (https://developer.sony.com/develop/cameras/)
 
-## Prerequsites
-
-Install and create new virtualenv,
+## _get
 
 ```bash
-$ sudo apt install -y virtualenv
-$ virtualenv ~/.python-venv/playmemories
+$ git clone https://github.com/loouislow81/playmemories.git
 ```
 
-## Usage
+## _run
 
-Connect to your computer wifi locally `ad-hoc` with `Sony DSC-QX Lens-Style` Camera first,
+connect your computer and the camera on the same WiFi connection,
 
-And then, run the application in Python Virtual Environment,
+run the application in Python Virtual Environment,
 
 ```bash
-$ cd ~/.python-venv/dsc-qx-playmemories/bin
-$ source activate
-$ (dsc-qx-playmemories) python dsc-qx-playmemories.py
+$ cd playmemories
+$ source bin/activate
+$ (dsc-qx-playmemories) ./playmemories.py
 ```
 
-To exit the Python Virtual Environment,
+to exit the Python Virtual Environment,
 
 ```bash
 $ (dsc-qx-playmemories) deactivate
