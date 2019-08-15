@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# @@file:dsc-playmemories.py
+# @@file:playmemories.py
 # @@description: live stream Sony DSC-QX Lens-Style to desktop
 # @@version: 1.0
 # @@author: Loouis Low <loouis@gmail.com>

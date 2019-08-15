@@ -13,7 +13,7 @@ function runas_root() {
 function prerequisites(){
   echo "[dsc-qx] installing packages..."
   apt install -y
-    python-pyqt4
+    python-qt4
 }
 
 ######## init
