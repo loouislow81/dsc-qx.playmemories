@@ -11,7 +11,7 @@ I learned from this this website (https://developer.sony.com/develop/cameras/)
 ## _get
 
 ```bash
-$ git clone https://github.com/loouislow81/playmemories.git
+$ git clone https://github.com/loouislow81/playmemories.proto1.git
 ```
 
 ## _run
@@ -21,15 +21,15 @@ connect your computer and the camera on the same WiFi connection,
 run the application in Python Virtual Environment,
 
 ```bash
-$ cd playmemories
+$ cd playmemories.proto1
 $ source bin/activate
-$ (dsc-qx-playmemories) ./playmemories.py
+$ (playmemories.proto1) ./playmemories.py
 ```
 
 to exit the Python Virtual Environment,
 
 ```bash
-$ (dsc-qx-playmemories) deactivate
+$ (playmemories.proto1) deactivate
 ```
 ---
 
