@@ -24,7 +24,7 @@ try:
     import PyQt4
 except:
     os.system("pip install -r requirements.txt")
-    os.system("sudo bash prerequisites.sh")
+    os.system("sudo apt install -y python-qt4")
 
 lock = threading.Lock()
 
